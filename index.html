@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0"
+    >
+    <meta http-equiv="X-UA-Compatible"
+          content="ie=edge"
+    >
+    <title>Document</title>
+    <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+    <div id="app"></div>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script type="text/babel">
+        'use strict';
+        const {useState,useEffect,useMemo} = React
+
+        function RButton({children,active,handleClick}) {
+            return(
+                <button className={active ? 'active' : ''}
+                        onClick={() => handleClick()}
+                >{children}</button>
+            )
+        }
+
+        function App() {
+            const [title, setTitle] = useState('React Example');
+            const [subtitle, setSubtitle] = useState('for learning');
+            const [backgroundColor, setBackgroundColor] = useState('white');
+            const [hide, setHide] = useState(false);
+            const [list, setList] = useState([]);
+            const [newItem, setNewItem] = useState('');
+            const [itemId, setItemId] = useState(0);
+
+            function changeBg (color) {
+                setBackgroundColor(color)
+            }
+
+            function setItemWithId(id,content) {
+                setList(list =>  [...list,{id, content}])
+            }
+
+            function addNewItem(value) {
+                const newItemValue = newItem || value
+                if(!newItemValue) return
+
+                setItemId(id => {
+                        const newId = id + 1
+                        setItemWithId(newId,newItemValue)
+                        return newId
+                    }
+                )
+                setNewItem('')
+            }
+
+            function deleteItem(id) {
+                setList(list => list.filter(item => item.id !== id))
+            }
+
+            const sortedList = useMemo(()=> {
+                return list.sort((a,b) => a.content.localeCompare(b.content))
+            },[list])
+
+            useEffect(() => {
+                for (let i = 1; i < 6; i++) {
+                    addNewItem(`Item-${i}`)
+                }
+            },[]);
+
+            return(
+                <div style={{backgroundColor}} className="page">
+                    <div className="wrapper">
+                        <header>
+                            <h1>{title}</h1>
+                            <h2>{subtitle}</h2>
+                            <RButton handleClick={()=> setHide(hide=>!hide)}>Hide</RButton>
+                        </header>
+                        <main>
+                            { !hide ?
+                                <>
+                                    <section className="input">
+                                        <div>You can change title here >>></div>
+                                        <input value={title} onChange={(e)=> setTitle(e.target.value)} type="text"/>
+                                    </section>
+                                    <section className="input">
+                                        <div>You can change subtitle here >>></div>
+                                        <input value={subtitle} onChange={(e)=> setSubtitle(e.target.value)} type="text"/>
+                                    </section>
+                                </>
+
+                                : null}
+                            <section className="background-change">
+                                {
+                                    ['red','white','blue'].map((color,i) => {
+                                        return (
+                                            <RButton
+                                                key={i}
+                                                active={backgroundColor === color}
+                                                handleClick={() => changeBg(color)}
+                                            >Change color to {color}</RButton>
+                                        )
+                                    })
+                                }
+                            </section>
+                            <section className="list">
+                                <h3>List</h3>
+                                <div className="list__add">
+                                    Write content for new item here >>>
+                                    <input
+                                        onKeyDown={(e)=>{e.code === 'Enter' ? addNewItem() : null}}
+                                        value={newItem}
+                                        onChange={(e) => setNewItem(e.target.value)} type="text"/>
+                                </div>
+                                <button onClick={() => addNewItem()} >Add new item</button>
+                                <ul>
+                                    {
+                                        sortedList.map(item => {
+                                            return (
+                                                <li key={item.id}>
+                                                    <span>{item.content}</span>
+                                                    <button onClick={()=> deleteItem(item.id)}>Delete</button>
+                                                </li>
+                                            )
+                                        })
+                                    }
+                                </ul>
+                            </section>
+                        </main>
+                    </div>
+                </div>
+            )
+        }
+
+        const rootNode = document.getElementById('app');
+        const root = ReactDOM.createRoot(rootNode);
+        root.render(React.createElement(App));
+    </script>
+</body>
+</html>
